@@ -1,34 +1,73 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
-import { Stats, OrbitControls } from '@react-three/drei';
+import { useEffect, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Stats } from '@react-three/drei';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { World } from '@/components/classes/world';
+import { Player } from '@/components/classes/player';
 
-import { useGUI } from '@/hooks/use-gui';
+import { setupGUI } from '@/lib/setup-gui';
 
 export default function GameCanvas() {
-  const world = new World();
-  world.generate();
-
-  useGUI(world);
-
   return (
     <section className="w-full h-screen">
       <Canvas
-        camera={{ position: [-32, 16, -32] }}
+        camera={{ position: [-20, 20, -20] }}
+        dpr={window.devicePixelRatio}
         shadows="soft"
-        onCreated={({ gl, scene }) => {
+        onCreated={({ gl }) => {
           gl.setClearColor(0x80a0e0);
-          scene.add(world);
         }}
       >
+        <Main />
         <SetupLights />
-        <OrbitControls target={[16, 0, 16]} />
         <Stats />
       </Canvas>
+
+      <div id="info">
+        <div id="player-position" className="absolute right-0 bottom-0 text-white m-2" />
+      </div>
     </section>
   );
+}
+
+function Main() {
+  const { scene, camera, gl } = useThree();
+
+  // Orbitcontrols
+  const controls = new OrbitControls(camera, gl.domElement);
+  controls.target.set(16, 16, 16);
+  controls.update();
+
+  let previousTime = performance.now();
+
+  const world = useMemo(() => new World(), []);
+  const player = useMemo(() => new Player(scene), []);
+
+  useEffect(() => {
+    world.generate();
+    scene.add(world);
+
+    const gui = setupGUI(world, player);
+    return () => {
+      gui.destroy();
+    };
+  }, []);
+
+  // Render loop
+  useFrame(({ gl, scene, camera }) => {
+    let currentTime = performance.now();
+    let dt = (currentTime - previousTime) / 1000;
+
+    player.applyInputs(dt);
+    gl.render(scene, player.controls.isLocked ? player.camera : camera);
+
+    previousTime = currentTime;
+  }, 1);
+
+  return null;
 }
 
 function SetupLights() {
