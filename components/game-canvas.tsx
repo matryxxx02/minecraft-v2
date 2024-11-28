@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { World } from '@/components/classes/world';
 import { Player } from '@/components/classes/player';
+import { Physics } from '@/components/classes/physics';
 
 import { setupGUI } from '@/lib/setup-gui';
 
@@ -45,6 +46,7 @@ function Main() {
 
   const world = useMemo(() => new World(), []);
   const player = useMemo(() => new Player(scene), []);
+  const physics = useMemo(() => new Physics(scene), []);
 
   useEffect(() => {
     world.generate();
@@ -61,7 +63,8 @@ function Main() {
     let currentTime = performance.now();
     let dt = (currentTime - previousTime) / 1000;
 
-    player.applyInputs(dt);
+    physics.update(dt, player, world);
+
     gl.render(scene, player.controls.isLocked ? player.camera : camera);
 
     previousTime = currentTime;
