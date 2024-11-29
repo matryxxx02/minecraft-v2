@@ -25,4 +25,12 @@ body {
     @apply bg-neutral-500 py-2 px-8 w-60 border-2 border-black hover:bg-neutral-400 active:scale-95;
     box-shadow: inset 2px 2px 0 0 #fff, inset -2px -2px 0 0 #333;
   }
+
+  .toolbar-icon {
+    @apply w-16 h-16 outline outline-4 outline-[rgb(58,58,58)];
+  }
+
+  .selected {
+    @apply outline-white;
+  }
 }

@@ -57,7 +57,7 @@ export const setupGUI = (scene: THREE.Scene, world: World, player: Player) => {
 
   // Handle value change in GUI
   gui.onChange(() => {
-    world.generate();
+    world.generate(true);
   });
 
   // Return GUI object to destroy in the cleanup function of useEffect

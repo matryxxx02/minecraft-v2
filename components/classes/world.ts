@@ -44,11 +44,60 @@ export class World extends THREE.Group {
   constructor(seed = 0) {
     super();
     this.seed = seed;
+
+    document.addEventListener('keydown', (ev) => {
+      switch (ev.code) {
+        case 'F1':
+          ev.preventDefault();
+          this.save();
+          break;
+        case 'F2':
+          ev.preventDefault();
+          this.load();
+          break;
+      }
+    });
+  }
+
+  // Saves the world data to local storage
+  save() {
+    localStorage.setItem('minecraft_params', JSON.stringify(this.params));
+    localStorage.setItem('minecraft_data', JSON.stringify(this.dataStore.data));
+
+    const statusContainer = document.getElementById('status');
+    if (statusContainer) {
+      statusContainer.innerHTML = 'GAME SAVED';
+      setTimeout(() => (statusContainer.innerHTML = ''), 3000);
+    }
+  }
+
+  // Loads the game from disk
+  load() {
+    const paramsFromStorage = localStorage.getItem('minecraft_params');
+    const dataFromStorage = localStorage.getItem('minecraft_data');
+
+    let onLoadText = 'LOADING FAILED';
+    if (paramsFromStorage && dataFromStorage) {
+      this.params = JSON.parse(paramsFromStorage);
+      this.dataStore.data = JSON.parse(dataFromStorage);
+      onLoadText = 'GAME LOADED';
+    }
+
+    const statusContainer = document.getElementById('status');
+    if (statusContainer) {
+      statusContainer.innerHTML = onLoadText;
+      setTimeout(() => (statusContainer.innerHTML = ''), 3000);
+    }
+
+    this.generate();
   }
 
   // Regenerate the world data model and the meshes
-  generate() {
-    this.dataStore.clear();
+  generate(clearCache = false) {
+    if (clearCache) {
+      this.dataStore.clear();
+    }
+
     this.disposeChunks();
 
     for (let x = -this.drawDistance; x <= this.drawDistance; x++) {

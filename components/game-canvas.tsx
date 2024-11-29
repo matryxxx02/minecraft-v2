@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stats } from '@react-three/drei';
@@ -9,6 +10,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { World } from '@/components/classes/world';
 import { Player } from '@/components/classes/player';
 import { Physics } from '@/components/classes/physics';
+import { ModelLoader } from '@/components/classes/model-loader';
 
 import { setupGUI } from '@/lib/setup-gui';
 import { blocks } from '@/lib/blocks';
@@ -32,9 +34,77 @@ export default function GameCanvas() {
         <Stats />
       </Canvas>
 
+      <div id="toolbar-container" className="fixed bottom-2 w-full flex justify-center">
+        <div
+          id="toolbar"
+          className="bg-[rgb(109,109,109)] border-4 border-[rgb(147,147,147)] p-2 flex justify-between gap-x-3"
+        >
+          <Image
+            src={'/textures/grass.png'}
+            alt="grass"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-1"
+          />
+          <Image src={'/textures/dirt.png'} alt="dirt" width={64} height={64} className="toolbar-icon" id="toolbar-2" />
+          <Image
+            src={'/textures/stone.png'}
+            alt="stone"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-3"
+          />
+          <Image
+            src={'/textures/coal_ore.png'}
+            alt="coal_ore"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-4"
+          />
+          <Image
+            src={'/textures/iron_ore.png'}
+            alt="iron_ore"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-5"
+          />
+          <Image
+            src={'/textures/tree_top.png'}
+            alt="tree_top"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-6"
+          />
+          <Image
+            src={'/textures/leaves.png'}
+            alt="leaves"
+            width={64}
+            height={64}
+            className="toolbar-icon"
+            id="toolbar-7"
+          />
+          <Image src={'/textures/sand.png'} alt="sand" width={64} height={64} className="toolbar-icon" id="toolbar-8" />
+          <Image
+            src={'/textures/pickaxe.png'}
+            alt="pickaxe"
+            width={64}
+            height={64}
+            className="toolbar-icon selected"
+            id="toolbar-0"
+          />
+        </div>
+      </div>
+
       <div id="info">
         <div id="player-position" className="absolute right-0 bottom-0 text-white m-2" />
       </div>
+
+      <div id="status" className="fixed bottom-2 left-2 text-white"></div>
     </section>
   );
 }
@@ -49,11 +119,14 @@ function Main({ sun }: { sun: THREE.DirectionalLight }) {
   const player = useMemo(() => new Player(scene), []);
   const physics = useMemo(() => new Physics(scene), []);
 
+  const modelLoader = useMemo(() => new ModelLoader(), []);
+
   const onMouseDown = (event: MouseEvent) => {
     if (player.controls.isLocked && player.selectedCoords) {
       if (player.activeBlockId === blocks.empty.id) {
         // console.log(`Removing block at ${JSON.stringify(player.selectedCoords)}`);
         world.removeBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z);
+        player.tool.startAnimation();
       } else {
         // console.log(`Adding ${player.activeBlockId} block at ${JSON.stringify(player.selectedCoords)}`);
         world.addBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z, player.activeBlockId);
@@ -69,6 +142,10 @@ function Main({ sun }: { sun: THREE.DirectionalLight }) {
 
     world.generate();
     scene.add(world);
+
+    modelLoader.loadModels((models) => {
+      player.tool.setMesh(models.pickaxe!);
+    });
 
     document.addEventListener('mousedown', onMouseDown);
     const gui = setupGUI(scene, world, player);
