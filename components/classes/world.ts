@@ -10,17 +10,35 @@ export class World extends THREE.Group {
   // The number of chunks to render around the player. When this is set to 0, the chunk the player
   // is on is the only chunk rendered. If it is set to 1, the adjacent chunks are rendered, and so on
   drawDistance = 2;
-  chunkSize = { width: 32, height: 32 };
+  chunkSize = { width: 24, height: 32 };
+
   params = {
     seed: 0,
     terrain: {
-      scale: 100,
-      magnitude: 0.1,
-      offset: 0.2,
+      scale: 80,
+      magnitude: 10,
+      offset: 4,
+      waterOffset: 5,
+    },
+    trees: {
+      trunk: {
+        minHeight: 5,
+        maxHeight: 7,
+      },
+      canopy: {
+        minRadius: 2,
+        maxRadius: 3,
+        density: 0.5, // vary between 0 and 1
+      },
+      frequency: 0.005,
+    },
+    clouds: {
+      scale: 30,
+      density: 0.5,
     },
   };
-  seed;
 
+  seed;
   dataStore = new DataStore();
 
   constructor(seed = 0) {

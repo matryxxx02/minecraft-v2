@@ -22,8 +22,9 @@ export default function GameCanvas() {
         camera={{ position: [-20, 20, -20] }}
         dpr={window.devicePixelRatio}
         shadows="soft"
-        onCreated={({ gl }) => {
+        onCreated={({ gl, camera }) => {
           gl.setClearColor(0x80a0e0);
+          camera.layers.enable(1);
         }}
       >
         <Main sun={sun} />

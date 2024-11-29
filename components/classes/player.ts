@@ -31,6 +31,7 @@ export class Player {
 
   constructor(scene: THREE.Scene) {
     this.camera.position.set(16, 16, 16);
+    this.camera.layers.enable(1);
     scene.add(this.camera);
     // scene.add(this.cameraHelper);
 
@@ -52,6 +53,8 @@ export class Player {
     const selectionGeometry = new THREE.BoxGeometry(1.01, 1.01, 1.01);
     this.selectionHelper = new THREE.Mesh(selectionGeometry, selectionMaterial);
     scene.add(this.selectionHelper);
+
+    this.raycaster.layers.set(0);
   }
 
   get worldVelocity() {
@@ -143,6 +146,10 @@ export class Player {
       case 'Digit3':
       case 'Digit4':
       case 'Digit5':
+      case 'Digit6':
+      case 'Digit7':
+      case 'Digit8':
+      case 'Digit9':
         this.activeBlockId = Number(event.key);
         console.log(`activeBlockId = ${event.key}`);
         break;
