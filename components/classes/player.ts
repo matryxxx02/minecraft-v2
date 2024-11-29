@@ -18,7 +18,7 @@ export class Player {
   boundsHelper: THREE.Mesh;
 
   constructor(scene: THREE.Scene) {
-    this.camera.position.set(32, 16, 32);
+    this.camera.position.set(16, 16, 16);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
 

@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 import { World } from '@/components/classes/world';
@@ -5,9 +6,14 @@ import { Player } from '@/components/classes/player';
 
 import { resources } from '@/lib/blocks';
 
-export const setupGUI = (world: World, player: Player) => {
+export const setupGUI = (scene: THREE.Scene, world: World, player: Player) => {
   // Initialize GUI
   const gui = new GUI();
+
+  // Scene config
+  const sceneFolder = gui.addFolder('Scene');
+  sceneFolder.add(scene.fog as THREE.Fog, 'near', 1, 200, 1).name('Fog Near');
+  sceneFolder.add(scene.fog as THREE.Fog, 'far', 1, 200, 1).name('Fog Far');
 
   // Player config
   const playerFolder = gui.addFolder('Player');
@@ -16,15 +22,15 @@ export const setupGUI = (world: World, player: Player) => {
 
   // Terrain config
   const terrainFolder = gui.addFolder('Terrain');
-  gui.add(world.size, 'width', 8, 128, 1).name('Width');
-  gui.add(world.size, 'height', 8, 64, 1).name('Height');
+  terrainFolder.add(world, 'asyncLoading').name('Async Chunk Loading');
+  terrainFolder.add(world, 'drawDistance', 0, 5, 1).name('Draw Distance');
+  terrainFolder.add(world.params, 'seed', 0, 10000).name('Seed');
   terrainFolder.add(world.params.terrain, 'scale', 10, 100).name('Scale');
   terrainFolder.add(world.params.terrain, 'magnitude', 0, 1).name('Magnitude');
   terrainFolder.add(world.params.terrain, 'offset', 0, 1).name('Offset');
-  terrainFolder.add(world.params, 'seed', 0, 10000).name('Seed');
 
   // Resource config
-  const resourcesFolder = gui.addFolder('Resources');
+  const resourcesFolder = gui.addFolder('Resources').close();
   resources.forEach((resource) => {
     resourcesFolder.add(resource, 'scarcity', 0, 1).name(resource.name);
 

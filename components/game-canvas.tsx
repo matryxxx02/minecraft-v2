@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stats } from '@react-three/drei';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -12,6 +13,8 @@ import { Physics } from '@/components/classes/physics';
 import { setupGUI } from '@/lib/setup-gui';
 
 export default function GameCanvas() {
+  const sun = useMemo(() => new THREE.DirectionalLight(), []);
+
   return (
     <section className="w-full h-screen">
       <Canvas
@@ -22,8 +25,8 @@ export default function GameCanvas() {
           gl.setClearColor(0x80a0e0);
         }}
       >
-        <Main />
-        <SetupLights />
+        <Main sun={sun} />
+        <SetupLights sun={sun} />
         <Stats />
       </Canvas>
 
@@ -34,13 +37,11 @@ export default function GameCanvas() {
   );
 }
 
-function Main() {
+function Main({ sun }: { sun: THREE.DirectionalLight }) {
   const { scene, camera, gl } = useThree();
 
   // Orbitcontrols
-  const controls = new OrbitControls(camera, gl.domElement);
-  controls.target.set(16, 16, 16);
-  controls.update();
+  const controls = useMemo(() => new OrbitControls(camera, gl.domElement), []);
 
   let previousTime = performance.now();
 
@@ -49,10 +50,15 @@ function Main() {
   const physics = useMemo(() => new Physics(scene), []);
 
   useEffect(() => {
+    scene.fog = new THREE.Fog(0x80a0e0, 50, 100);
+
+    controls.target.set(16, 16, 16);
+    controls.update();
+
     world.generate();
     scene.add(world);
 
-    const gui = setupGUI(world, player);
+    const gui = setupGUI(scene, world, player);
     return () => {
       gui.destroy();
     };
@@ -63,7 +69,14 @@ function Main() {
     let currentTime = performance.now();
     let dt = (currentTime - previousTime) / 1000;
 
-    physics.update(dt, player, world);
+    if (player.controls.isLocked) {
+      physics.update(dt, player, world);
+      world.update(player);
+
+      sun.position.copy(player.position);
+      sun.position.sub(new THREE.Vector3(-50, -50, -50));
+      sun.target.position.copy(player.position);
+    }
 
     gl.render(scene, player.controls.isLocked ? player.camera : camera);
 
@@ -73,22 +86,43 @@ function Main() {
   return null;
 }
 
-function SetupLights() {
-  return (
-    <>
-      <directionalLight
-        position={[50, 50, 50]}
-        castShadow
-        shadow-camera-left={-50}
-        shadow-camera-right={50}
-        shadow-camera-bottom={-50}
-        shadow-camera-top={50}
-        shadow-camera-near={0.1}
-        shadow-camera-far={100}
-        shadow-bias={-0.0005}
-        shadow-mapSize={[512, 512]}
-      />
-      <ambientLight intensity={0.5} />
-    </>
-  );
+function SetupLights({ sun }: { sun: THREE.DirectionalLight }) {
+  const { scene } = useThree();
+
+  sun.position.set(50, 50, 50);
+  sun.castShadow = true;
+  sun.shadow.camera.left = -100;
+  sun.shadow.camera.right = 100;
+  sun.shadow.camera.bottom = -100;
+  sun.shadow.camera.top = 100;
+  sun.shadow.camera.near = 0.1;
+  sun.shadow.camera.far = 200;
+  sun.shadow.bias = -0.0001;
+  sun.shadow.mapSize = new THREE.Vector2(2048, 2048);
+  scene.add(sun);
+  scene.add(sun.target);
+
+  const ambient = useMemo(() => new THREE.AmbientLight(), []);
+  ambient.intensity = 0.5;
+  scene.add(ambient);
+
+  return null;
+
+  // return (
+  //   <>
+  //     <directionalLight
+  //       position={[50, 50, 50]}
+  //       castShadow
+  //       shadow-camera-left={-50}
+  //       shadow-camera-right={50}
+  //       shadow-camera-bottom={-50}
+  //       shadow-camera-top={50}
+  //       shadow-camera-near={0.1}
+  //       shadow-camera-far={100}
+  //       shadow-bias={-0.0005}
+  //       shadow-mapSize={[512, 512]}
+  //     />
+  //     <ambientLight intensity={0.5} />
+  //   </>
+  // );
 }

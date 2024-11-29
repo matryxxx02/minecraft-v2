@@ -52,9 +52,6 @@ export class Physics {
     const candidates = this.broadPhase(player, world);
     const collisions = this.narrowPhase(candidates, player);
 
-    // console.log('Broadphase:', candidates.length);
-    // console.log('Narrowphase:', collisions.length);
-
     if (collisions.length > 0) {
       this.resolveCollisions(collisions, player);
     }
