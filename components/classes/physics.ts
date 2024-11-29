@@ -29,7 +29,7 @@ export class Physics {
 
   constructor(scene: THREE.Scene) {
     this.helpers = new THREE.Group();
-    scene.add(this.helpers);
+    // scene.add(this.helpers);
   }
 
   // Moves the physics simukation forward in time 'dt'

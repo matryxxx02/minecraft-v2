@@ -11,6 +11,7 @@ import { Player } from '@/components/classes/player';
 import { Physics } from '@/components/classes/physics';
 
 import { setupGUI } from '@/lib/setup-gui';
+import { blocks } from '@/lib/blocks';
 
 export default function GameCanvas() {
   const sun = useMemo(() => new THREE.DirectionalLight(), []);
@@ -43,11 +44,21 @@ function Main({ sun }: { sun: THREE.DirectionalLight }) {
   // Orbitcontrols
   const controls = useMemo(() => new OrbitControls(camera, gl.domElement), []);
 
-  let previousTime = performance.now();
-
   const world = useMemo(() => new World(), []);
   const player = useMemo(() => new Player(scene), []);
   const physics = useMemo(() => new Physics(scene), []);
+
+  const onMouseDown = (event: MouseEvent) => {
+    if (player.controls.isLocked && player.selectedCoords) {
+      if (player.activeBlockId === blocks.empty.id) {
+        // console.log(`Removing block at ${JSON.stringify(player.selectedCoords)}`);
+        world.removeBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z);
+      } else {
+        // console.log(`Adding ${player.activeBlockId} block at ${JSON.stringify(player.selectedCoords)}`);
+        world.addBlock(player.selectedCoords.x, player.selectedCoords.y, player.selectedCoords.z, player.activeBlockId);
+      }
+    }
+  };
 
   useEffect(() => {
     scene.fog = new THREE.Fog(0x80a0e0, 50, 100);
@@ -58,18 +69,23 @@ function Main({ sun }: { sun: THREE.DirectionalLight }) {
     world.generate();
     scene.add(world);
 
+    document.addEventListener('mousedown', onMouseDown);
     const gui = setupGUI(scene, world, player);
+
     return () => {
+      document.removeEventListener('mousedown', onMouseDown);
       gui.destroy();
     };
   }, []);
 
   // Render loop
+  let previousTime = performance.now();
   useFrame(({ gl, scene, camera }) => {
     let currentTime = performance.now();
     let dt = (currentTime - previousTime) / 1000;
 
     if (player.controls.isLocked) {
+      player.update(world);
       physics.update(dt, player, world);
       world.update(player);
 

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 
 import { RNG } from '@/components/classes/rng';
+import { DataStore } from '@/components/classes/data-store';
 
 import { blocks, resources } from '@/lib/blocks';
 
@@ -12,18 +13,21 @@ export class WorldChunk extends THREE.Group {
   loaded;
   size;
   params;
+  dataStore;
 
   constructor(
     size: { width: number; height: number },
     params: {
       seed: number;
       terrain: { scale: number; magnitude: number; offset: number };
-    }
+    },
+    dataStore: DataStore
   ) {
     super();
     this.loaded = false;
     this.size = size;
     this.params = params;
+    this.dataStore = dataStore;
   }
 
   // Generates the world data and meshes
@@ -34,6 +38,7 @@ export class WorldChunk extends THREE.Group {
     this.initializeTerrain();
     this.generateResources(rng);
     this.generateTerrain(rng);
+    this.loadPlayerChanges();
     this.generateMeshes();
 
     this.loaded = true;
@@ -116,6 +121,20 @@ export class WorldChunk extends THREE.Group {
     }
   }
 
+  // Pulls any changes from the data store and applies them to the data model
+  loadPlayerChanges() {
+    for (let x = 0; x < this.size.width; x++) {
+      for (let y = 0; y < this.size.height; y++) {
+        for (let z = 0; z < this.size.width; z++) {
+          if (this.dataStore.contains(this.position.x, this.position.z, x, y, z)) {
+            const blockId = this.dataStore.get(this.position.x, this.position.z, x, y, z);
+            this.setBlockId(x, y, z, blockId);
+          }
+        }
+      }
+    }
+  }
+
   // Generates the 3D representation of the world from world data
   generateMeshes() {
     this.clear();
@@ -134,7 +153,7 @@ export class WorldChunk extends THREE.Group {
       .filter((blockType) => blockType.id !== blocks.empty.id)
       .forEach((blockType) => {
         const mesh = new THREE.InstancedMesh(geometry, blockType.material, maxCount);
-        mesh.name = blockType.name;
+        mesh.name = blockType.id.toString();
         mesh.count = 0;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -174,6 +193,84 @@ export class WorldChunk extends THREE.Group {
     }
   }
 
+  // Adds a new block at (x, y, z) of type `block`
+  addBlock(x: number, y: number, z: number, blockId: number) {
+    const block = this.getBlock(x, y, z);
+    if (block && block.id === blocks.empty.id) {
+      this.setBlockId(x, y, z, blockId);
+      this.addBlockInstance(x, y, z);
+      this.dataStore.set(this.position.x, this.position.z, x, y, z, blockId);
+    }
+  }
+
+  // Removes the block at (x, y, z)
+  removeBlock(x: number, y: number, z: number) {
+    const block = this.getBlock(x, y, z);
+    if (block && block.id !== blocks.empty.id) {
+      this.deleteBlockInstance(x, y, z);
+      this.setBlockId(x, y, z, blocks.empty.id);
+      this.dataStore.set(this.position.x, this.position.z, x, y, z, blocks.empty.id);
+    }
+  }
+
+  // Removes the mesh instance associated with `block` by swapping it with
+  // the last instance and decrementing the instance count
+  deleteBlockInstance(x: number, y: number, z: number) {
+    const block = this.getBlock(x, y, z);
+
+    if (block?.instanceId === null) return;
+
+    // Get the mesh and instance id of the block
+    const mesh = this.children.find(
+      (instancedMesh) => instancedMesh.name === block?.id.toString()
+    ) as THREE.InstancedMesh;
+    const instanceId = block?.instanceId!;
+
+    // Swapping the transformation matrix of the block in the last position
+    // with the block that we are going to remove
+    const lastMatrix = new THREE.Matrix4();
+    mesh.getMatrixAt(mesh.count - 1, lastMatrix);
+
+    // Updating the instance id of the block in the last position to its new instance id
+    const v = new THREE.Vector3();
+    v.applyMatrix4(lastMatrix);
+    this.setBlockInstanceId(v.x, v.y, v.z, instanceId);
+
+    // Swapping the transformation matrix
+    mesh.setMatrixAt(instanceId, lastMatrix);
+
+    // This effectively removes the last instance from the scene
+    mesh.count--;
+
+    // Notify the instanced mesh we updated the instance matrix
+    // Also re-compute the bounding sphere so raycasting works
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+
+    // Remove the instance associated with the block
+    this.setBlockInstanceId(x, y, z, null);
+  }
+
+  // Create a new block instance for the block at (x, y, z)
+  addBlockInstance(x: number, y: number, z: number) {
+    const block = this.getBlock(x, y, z);
+
+    // Verify the block exists and is not an empty block type
+    if (block && block.id !== blocks.empty.id && block.instanceId === null) {
+      // Get the mesh and instance id of the block
+      const mesh = this.children.find(
+        (instancedMesh) => instancedMesh.name === block?.id.toString()
+      ) as THREE.InstancedMesh;
+      const instanceId = mesh.count++;
+      this.setBlockInstanceId(x, y, z, instanceId);
+
+      const matrix = new THREE.Matrix4();
+      matrix.setPosition(x, y, z);
+      mesh.setMatrixAt(instanceId, matrix);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
   // Sets the block id for the block at (x, y, z)
   setBlockId(x: number, y: number, z: number, id: number) {
     if (this.inBounds(x, y, z)) {
@@ -182,7 +279,7 @@ export class WorldChunk extends THREE.Group {
   }
 
   // Sets the block instanceId for the block at (x, y, z)
-  setBlockInstanceId(x: number, y: number, z: number, instanceId: number) {
+  setBlockInstanceId(x: number, y: number, z: number, instanceId: number | null) {
     if (this.inBounds(x, y, z)) {
       this.data[x][y][z].instanceId = instanceId;
     }

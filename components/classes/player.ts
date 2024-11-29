@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
+import { World } from '@/components/classes/world';
+
+import { blocks } from '@/lib/blocks';
+
+const CENTER_SCREEN = new THREE.Vector2();
+
 export class Player {
   radius = 0.5;
   height = 1.75;
@@ -15,12 +21,18 @@ export class Player {
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 200);
   controls = new PointerLockControls(this.camera, document.body);
   cameraHelper = new THREE.CameraHelper(this.camera);
+
   boundsHelper: THREE.Mesh;
+  selectionHelper: THREE.Mesh;
+
+  raycaster = new THREE.Raycaster(undefined, undefined, 0, 3);
+  selectedCoords: THREE.Vector3 | null = null;
+  activeBlockId = blocks.grass.id;
 
   constructor(scene: THREE.Scene) {
     this.camera.position.set(16, 16, 16);
     scene.add(this.camera);
-    scene.add(this.cameraHelper);
+    // scene.add(this.cameraHelper);
 
     document.addEventListener('keydown', this.onKeyDown.bind(this));
     document.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -30,13 +42,61 @@ export class Player {
       new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
       new THREE.MeshBasicMaterial({ wireframe: true })
     );
-    scene.add(this.boundsHelper);
+    // scene.add(this.boundsHelper);
+
+    const selectionMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.3,
+      color: 0xffff00,
+    });
+    const selectionGeometry = new THREE.BoxGeometry(1.01, 1.01, 1.01);
+    this.selectionHelper = new THREE.Mesh(selectionGeometry, selectionMaterial);
+    scene.add(this.selectionHelper);
   }
 
   get worldVelocity() {
     this.#worldVelocity.copy(this.velocity);
     this.#worldVelocity.applyEuler(new THREE.Euler(0, this.camera.rotation.y, 0));
     return this.#worldVelocity;
+  }
+
+  update(world: World) {
+    this.updateRaycaster(world);
+  }
+
+  updateRaycaster(world: World) {
+    this.raycaster.setFromCamera(CENTER_SCREEN, this.camera);
+    const intersections = this.raycaster.intersectObject(world, true);
+
+    if (intersections.length > 0) {
+      const intersection = intersections[0];
+
+      // Get the position of the chunk that the block is contained in
+      const chunk = intersection.object.parent!;
+
+      // Get transformation matrix of the intersected block
+      const blockMatrix = new THREE.Matrix4();
+      (intersection.object as THREE.InstancedMesh).getMatrixAt(intersection.instanceId!, blockMatrix);
+
+      // Extract the position from the block's transformation matrix
+      // and store it in selectedCoords
+      this.selectedCoords = chunk.position.clone();
+      this.selectedCoords.applyMatrix4(blockMatrix);
+
+      // If we are adding a block to the world, move the selection indicator
+      // to the nearest adjacent block
+      if (this.activeBlockId !== blocks.empty.id) {
+        this.selectedCoords.add(intersection.normal!);
+      }
+
+      this.selectionHelper.position.copy(this.selectedCoords);
+      this.selectionHelper.visible = true;
+
+      // console.log(this.selectedCoords);
+    } else {
+      this.selectedCoords = null;
+      this.selectionHelper.visible = false;
+    }
   }
 
   // Applies a change in velocity 'dv' that is specified in the world frame
@@ -77,6 +137,15 @@ export class Player {
     }
 
     switch (event.code) {
+      case 'Digit0':
+      case 'Digit1':
+      case 'Digit2':
+      case 'Digit3':
+      case 'Digit4':
+      case 'Digit5':
+        this.activeBlockId = Number(event.key);
+        console.log(`activeBlockId = ${event.key}`);
+        break;
       case 'KeyW':
         this.input.z = this.maxSpeed;
         break;
