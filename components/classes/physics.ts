@@ -4,6 +4,7 @@ import { Player } from '@/components/classes/player';
 import { World } from '@/components/classes/world';
 
 import { blocks } from '@/lib/blocks';
+import { Config } from '@/lib/config';
 
 const collisionMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000,
@@ -29,7 +30,8 @@ export class Physics {
 
   constructor(scene: THREE.Scene) {
     this.helpers = new THREE.Group();
-    // scene.add(this.helpers);
+
+    if (Config.misc.debug_mode) scene.add(this.helpers);
   }
 
   // Moves the physics simukation forward in time 'dt'
@@ -37,10 +39,13 @@ export class Physics {
     this.accumulator += dt;
 
     while (this.accumulator >= this.timestep) {
-      this.helpers.clear();
+      if (Config.misc.debug_mode) this.helpers.clear();
+
       player.velocity.y -= this.gravity * this.timestep;
       player.applyInputs(this.timestep);
-      player.updateBoundsHelper();
+
+      if (Config.misc.debug_mode) player.updateBoundsHelper();
+
       this.detectCollisions(player, world);
       this.accumulator -= this.timestep;
     }
@@ -87,7 +92,7 @@ export class Physics {
           if (block && block.id !== blocks.empty.id) {
             const blockPos = { x, y, z };
             candidates.push(blockPos);
-            this.addCollisionHelper(blockPos);
+            if (Config.misc.debug_mode) this.addCollisionHelper(blockPos);
           }
         }
       }
@@ -141,7 +146,7 @@ export class Physics {
           overlap,
         });
 
-        this.addContactPointHelper(closestPoint);
+        if (Config.misc.debug_mode) this.addContactPointHelper(closestPoint);
       }
     }
 

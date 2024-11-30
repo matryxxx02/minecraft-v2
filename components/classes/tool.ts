@@ -53,7 +53,7 @@ export class Tool extends THREE.Group {
     mesh.receiveShadow = true;
     mesh.castShadow = true;
 
-    this.position.set(0.6, -0.3, -0.5);
+    this.position.set(0.8, -0.4, -0.5);
     this.scale.set(0.5, 0.5, 0.5);
     this.rotation.z = Math.PI / 2;
     this.rotation.y = Math.PI + 0.2;

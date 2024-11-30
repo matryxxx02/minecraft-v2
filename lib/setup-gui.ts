@@ -11,17 +11,17 @@ export const setupGUI = (scene: THREE.Scene, world: World, player: Player) => {
   const gui = new GUI();
 
   // Scene config
-  const sceneFolder = gui.addFolder('Scene');
+  const sceneFolder = gui.addFolder('Scene').close();
   sceneFolder.add(scene.fog as THREE.Fog, 'near', 1, 200, 1).name('Fog Near');
   sceneFolder.add(scene.fog as THREE.Fog, 'far', 1, 200, 1).name('Fog Far');
 
   // Player config
-  const playerFolder = gui.addFolder('Player');
+  const playerFolder = gui.addFolder('Player').close();
   playerFolder.add(player, 'maxSpeed', 1, 20, 1).name('Max Speed');
   playerFolder.add(player.cameraHelper, 'visible').name('Show Camera Helper');
 
   // Terrain config
-  const terrainFolder = gui.addFolder('Terrain');
+  const terrainFolder = gui.addFolder('Terrain').close();
   terrainFolder.add(world, 'asyncLoading').name('Async Chunk Loading');
   terrainFolder.add(world, 'drawDistance', 0, 5, 1).name('Draw Distance');
   terrainFolder.add(world.params, 'seed', 0, 10000).name('Seed');
@@ -31,7 +31,7 @@ export const setupGUI = (scene: THREE.Scene, world: World, player: Player) => {
   terrainFolder.add(world.params.terrain, 'waterOffset', 0, 32, 1).name('Water Offset');
 
   // Biomes config
-  const biomesFolder = gui.addFolder('Biomes');
+  const biomesFolder = gui.addFolder('Biomes').close();
   biomesFolder.add(world.params.biomes, 'scale', 10, 500).name('Biome Scale');
   biomesFolder.add(world.params.biomes.variation, 'amplitude', 0, 1).name('Variation Amplitude');
   biomesFolder.add(world.params.biomes.variation, 'scale', 10, 500).name('Variation Scale');
@@ -68,6 +68,8 @@ export const setupGUI = (scene: THREE.Scene, world: World, player: Player) => {
   gui.onChange(() => {
     world.generate(true);
   });
+
+  gui.close();
 
   // Return GUI object to destroy in the cleanup function of useEffect
   return gui;

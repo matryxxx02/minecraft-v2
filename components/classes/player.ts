@@ -5,6 +5,7 @@ import { World } from '@/components/classes/world';
 import { Tool } from '@/components/classes/tool';
 
 import { blocks } from '@/lib/blocks';
+import { Config } from '@/lib/config';
 
 const CENTER_SCREEN = new THREE.Vector2();
 
@@ -36,7 +37,8 @@ export class Player {
     this.camera.position.set(16, 16, 16);
     this.camera.layers.enable(1);
     scene.add(this.camera);
-    // scene.add(this.cameraHelper);
+
+    if (Config.misc.debug_mode) scene.add(this.cameraHelper);
 
     this.camera.add(this.tool);
 
@@ -48,7 +50,7 @@ export class Player {
       new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
       new THREE.MeshBasicMaterial({ wireframe: true })
     );
-    // scene.add(this.boundsHelper);
+    if (Config.misc.debug_mode) scene.add(this.boundsHelper);
 
     const selectionMaterial = new THREE.MeshBasicMaterial({
       transparent: true,

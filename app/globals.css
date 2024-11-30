@@ -26,11 +26,35 @@ body {
     box-shadow: inset 2px 2px 0 0 #fff, inset -2px -2px 0 0 #333;
   }
 
+  #toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px;
+    background: #666;
+    box-shadow: 0px 0px 2px 2px #222;
+  }
+
   .toolbar-icon {
-    @apply w-16 h-16 outline outline-4 outline-[rgb(58,58,58)];
+    width: 48px;
+    height: 48px;
+    box-shadow: -1px -1px 2px 2px #333, 1px 1px 2px 2px #ccc;
   }
 
   .selected {
-    @apply outline-white;
+    position: relative;
+    outline: none;
+    box-shadow: 2px 2px 2px 2px #ccc, -2px -2px 2px 2px #333;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      width: 140%;
+      height: 140%;
+      box-shadow: inset -2px -2px 2px 0 #333, inset 4px 4px 4px 0 #fff, 0px 0px 4px 4px #000;
+    }
   }
 }

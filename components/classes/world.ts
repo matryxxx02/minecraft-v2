@@ -26,9 +26,9 @@ export class World extends THREE.Group {
         amplitude: 0.2,
         scale: 50,
       },
-      tundraToTemperate: 0.25,
-      temperateToJungle: 0.5,
-      jungleToDesert: 0.75,
+      tundraToTemperate: 0.1,
+      temperateToJungle: 0.6,
+      jungleToDesert: 0.9,
     },
     trees: {
       trunk: {
