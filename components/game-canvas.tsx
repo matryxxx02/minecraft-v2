@@ -29,7 +29,7 @@ export default function GameCanvas() {
           camera.layers.enable(1);
         }}
       >
-        <Main sun={sun} />
+        <GameScene sun={sun} />
         <SetupLights sun={sun} />
         <Stats />
       </Canvas>
@@ -109,7 +109,7 @@ export default function GameCanvas() {
   );
 }
 
-function Main({ sun }: { sun: THREE.DirectionalLight }) {
+function GameScene({ sun }: { sun: THREE.DirectionalLight }) {
   const { scene, camera, gl } = useThree();
 
   // Orbitcontrols
@@ -135,7 +135,7 @@ function Main({ sun }: { sun: THREE.DirectionalLight }) {
   };
 
   useEffect(() => {
-    scene.fog = new THREE.Fog(0x80a0e0, 50, 100);
+    scene.fog = new THREE.Fog(0x80a0e0, 50, 60);
 
     controls.target.set(16, 16, 16);
     controls.update();
@@ -185,12 +185,12 @@ function SetupLights({ sun }: { sun: THREE.DirectionalLight }) {
 
   sun.position.set(50, 50, 50);
   sun.castShadow = true;
-  sun.shadow.camera.left = -100;
-  sun.shadow.camera.right = 100;
-  sun.shadow.camera.bottom = -100;
-  sun.shadow.camera.top = 100;
+  sun.shadow.camera.left = -50;
+  sun.shadow.camera.right = 50;
+  sun.shadow.camera.bottom = -50;
+  sun.shadow.camera.top = 50;
   sun.shadow.camera.near = 0.1;
-  sun.shadow.camera.far = 200;
+  sun.shadow.camera.far = 100;
   sun.shadow.bias = -0.0001;
   sun.shadow.mapSize = new THREE.Vector2(2048, 2048);
   scene.add(sun);

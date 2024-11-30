@@ -17,8 +17,18 @@ export class World extends THREE.Group {
     terrain: {
       scale: 80,
       magnitude: 10,
-      offset: 4,
-      waterOffset: 5,
+      offset: 5,
+      waterOffset: 3,
+    },
+    biomes: {
+      scale: 200,
+      variation: {
+        amplitude: 0.2,
+        scale: 50,
+      },
+      tundraToTemperate: 0.25,
+      temperateToJungle: 0.5,
+      jungleToDesert: 0.75,
     },
     trees: {
       trunk: {
@@ -34,7 +44,7 @@ export class World extends THREE.Group {
     },
     clouds: {
       scale: 30,
-      density: 0.5,
+      density: 0.3,
     },
   };
 
