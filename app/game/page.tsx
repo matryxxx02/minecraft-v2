@@ -1,7 +1,8 @@
-// import GameCanvas from '@/components/game-canvas';
-
 import dynamic from 'next/dynamic';
-const GameCanvas = dynamic(() => import('@/components/game-canvas'), { ssr: false });
+
+import GameLoader from '@/components/game-loader';
+
+const GameCanvas = dynamic(() => import('@/components/game-canvas'), { ssr: false, loading: () => <GameLoader /> });
 
 export default function GamePage() {
   return (
