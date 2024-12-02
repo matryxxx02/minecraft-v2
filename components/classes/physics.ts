@@ -174,15 +174,15 @@ export class Physics {
       if (!this.pointInPlayerBoundingCylinder(collision.contactPoint, player)) continue;
 
       // 1) Adjust position of player so the block and player are no longer overlapping
-      let deltaPosiiton = collision.normal.clone();
+      const deltaPosiiton = collision.normal.clone();
       deltaPosiiton.multiplyScalar(collision.overlap);
       player.position.add(deltaPosiiton);
 
       // 2) Negate player's velocity along the collision normal
       // Get the magnitude of the player's velocity along the collision normal
-      let magnitude = player.worldVelocity.dot(collision.normal);
+      const magnitude = player.worldVelocity.dot(collision.normal);
       // Remove the part of the velocity from the player's velocity
-      let velocityAdjustment = collision.normal.clone().multiplyScalar(magnitude);
+      const velocityAdjustment = collision.normal.clone().multiplyScalar(magnitude);
 
       // Apply the velocity to the player
       player.applyWorldDeltaVelocity(velocityAdjustment.negate());

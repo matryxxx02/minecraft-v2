@@ -363,13 +363,13 @@ export class WorldChunk extends THREE.Group {
   deleteBlockInstance(x: number, y: number, z: number) {
     const block = this.getBlock(x, y, z);
 
-    if (block?.instanceId === null) return;
+    if (block === null || block.instanceId === null) return;
 
     // Get the mesh and instance id of the block
     const mesh = this.children.find(
       (instancedMesh) => instancedMesh.name === block?.id.toString()
     ) as THREE.InstancedMesh;
-    const instanceId = block?.instanceId!;
+    const instanceId = block?.instanceId;
 
     // Swapping the transformation matrix of the block in the last position
     // with the block that we are going to remove

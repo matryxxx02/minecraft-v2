@@ -32,7 +32,7 @@ export function GameScene({ sun, toolbar }: GameSceneType) {
 
   const modelLoader = useMemo(() => new ModelLoader(), []);
 
-  const onMouseDown = (event: MouseEvent) => {
+  const onMouseDown = () => {
     if (player.controls.isLocked && player.selectedCoords) {
       if (player.activeBlockId === blocks.empty.id) {
         // console.log(`Removing block at ${JSON.stringify(player.selectedCoords)}`);
@@ -77,7 +77,9 @@ export function GameScene({ sun, toolbar }: GameSceneType) {
       player.update(world);
       physics.update(delta, player, world);
       world.update(player);
-      toolbar.current ? (toolbar.current.style.display = 'flex') : null;
+      if (toolbar.current) {
+        toolbar.current.style.display = 'flex';
+      }
 
       if (sun.current) {
         sun.current.position.copy(player.position);
@@ -85,7 +87,9 @@ export function GameScene({ sun, toolbar }: GameSceneType) {
         sun.current.target.position.copy(player.position);
       }
     } else {
-      // toolbar.current ? (toolbar.current.style.display = 'none') : null;
+      if (toolbar.current) {
+        toolbar.current.style.display = 'none';
+      }
     }
 
     gl.render(scene, player.controls.isLocked ? player.camera : camera);

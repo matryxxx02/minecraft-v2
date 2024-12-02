@@ -1,9 +1,9 @@
 import { forwardRef } from 'react';
 import Image from 'next/image';
 
-const Toolbar = forwardRef<HTMLDivElement>(({}, ref) => {
+export default forwardRef<HTMLDivElement>(function Toolbar({}, ref) {
   return (
-    <div ref={ref} id="toolbar-container" className="fixed bottom-2 w-full flex justify-center m-2">
+    <div ref={ref} id="toolbar-container" className="fixed bottom-2 w-full hidden justify-center m-2">
       <div id="toolbar">
         <InventoryBlock blockType="pickaxe" id="toolbar-0" selected />
         <InventoryBlock blockType="grass" id="toolbar-1" />
@@ -18,8 +18,6 @@ const Toolbar = forwardRef<HTMLDivElement>(({}, ref) => {
     </div>
   );
 });
-
-export default Toolbar;
 
 function InventoryBlock({ blockType, id, selected }: { blockType: string; id: string; selected?: boolean }) {
   return (
