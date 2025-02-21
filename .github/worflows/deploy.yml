@@ -1,0 +1,30 @@
+name: CD / Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: desktest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: args-artifact
+          path: .
+
+      - name: build image
+        run: >
+            docker build . minecraft
+
+  run :
+    - name : Run build
+      run:  >
+        docker run 
+        --publish 2001:3000
+        --detach
+        --restart always
+        --name minecraft
+        --init
+        minecraft

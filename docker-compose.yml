@@ -1,0 +1,13 @@
+version: "3.5"
+
+services:
+  minecraft:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2001:3000"
+
+networks:
+  tabuleo-network:
+    external: true
