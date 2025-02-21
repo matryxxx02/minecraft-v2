@@ -13,7 +13,7 @@ jobs:
 
       - name: build image
         run: >
-            docker build . -t minecraft
+            docker build -t minecraft .
 
   run :
     runs-on: desktest
